@@ -13,6 +13,8 @@ inputs:
   sha:
     description: 'Git object to attach note to'
     required: true
+  file: 
+    description: 'Note message file'
   message:
     description: 'Note message'
   override:
@@ -46,7 +48,14 @@ runs:
         MESSAGE="$(git notes --ref=${{ inputs.ref }} show ${{ inputs.sha }} 2> /dev/null || echo "")"
         echo "::set-output name=message::$MESSAGE"
 
-        if [[ -n "${{ inputs.message }}" ]]; then
+        if [[ -n "${{ inputs.file }}" ]]; then
+          OVERRIDE=""
+          if [[ "${{ inputs.override }}" == "true" ]]; then
+            OVERRIDE="-f"
+          fi
+          git notes --ref '${{ inputs.ref }}' add -F '${{ inputs.file }}' "${{ inputs.sha }}" $OVERRIDE
+          git push "${{ inputs.remote }}" "refs/notes/*"
+        elif [[ -n "${{ inputs.message }}" ]]; then
           OVERRIDE=""
           if [[ "${{ inputs.override }}" == "true" ]]; then
             OVERRIDE="-f"
